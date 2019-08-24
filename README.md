@@ -10,37 +10,41 @@ Make sure you have following package installed on your system.
     librtmp-dev
     pycurl
 
-Run following commands to get your app running.
+Follow the steps mentioned at https://github.com/TresysTechnology/setools/wiki/SETools-4-on-Ubuntu-16.10 to install setools python package:
+    $ sudo apt install gcc bison flex swig mock libbz2-dev
+    $ sudo apt install libsepol1 libsepol1-dev gcc sepol-utils
+    $ sudo apt install libselinux1 libselinux1-dev python-selinux selinux-utils python-dev
+    $ sudo apt install python-enum34 python-pyqt5 python-setools python-pip python-mock python-tox
+    $ sudo pip install networkx
 
-  git clone https://bitbucket.org/atawre/secureos/
-  cd secureos
-  pip install -r reqs.txt
-  cd webapp
-  rm -f db.sqlite3
-  rm -fr rwfm/migrations/
-  python manage.py makemigrations rwfm
-  python manage.py migrate
-  python manage.py runserver 0.0.0.0:8000
+Build and Install:
+    $ cd setools
+    $ python setup.py build
+    $ sudo python setup.py install
 
-
-* Installing client.
+* Installing runtime monitor.
 
   Run following commands from the machine you want to protect.
 
-  # git clone https://bitbucket.org/atawre/secureos/
-  # cd secureos/client/
+    $ git clone https://github.com/parjanya-vyas/SELinux-Dynamic-Policy-Analysis/
+  
+* Installing webapp.
+    $ cd webapp
+    $ ./start_server.sh
+
+* Installing client
+    $ cd client
+    $ sudo ./install.sh
   
   Configure rwfmd.cfg to use user Rules engine and run install script -
 
-  # bash install.sh
-
   Once installation is done, run secure shell as  
  
-  # /opt/secos/bin/secure_shell
+    $ /opt/secos/bin/secure_shell
 
   Enable rwfm as follows - 
 
-  # rwfm enable
+    $ /opt/secos/bin/rwfm enable
 
   You can see the rwfmd daemon log @  /var/log/rwfmd.log
 
