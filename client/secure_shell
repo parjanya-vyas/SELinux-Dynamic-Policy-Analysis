@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+export PATH=$PATH:/opt/secos/bin/
+SH=`which sh`
+LD_PRELOAD=/lib/secos/preload.so $SH

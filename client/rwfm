@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+port = 5000
+
+import socket
+import sys
+from sys import argv
+
+def usage():
+    print "Usage:"
+    print "\trwfm enable"
+    print "\trwfm disable"
+
+if len(argv) < 2:
+    usage()
+    exit(2)
+
+
+# Create a TCP/IP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect the socket to the port where the server is listening
+server_address = ('localhost', port)
+print >>sys.stderr, 'connecting to %s port %s' % server_address
+sock.connect(server_address)
+if argv[1]=='enable':
+    sock.send("rwfm 1")
+    assert int(sock.recv(10))==1, 'Failed to enable rwfm.'
+elif argv[1]=='disable':
+    sock.send("rwfm 0")
+    assert int(sock.recv(10))==0, 'Failed to enable rwfm.'
+else:
+    usage()
+
+exit(0)
+

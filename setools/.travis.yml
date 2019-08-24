@@ -1,0 +1,64 @@
+# SELinux userspace portions originally by Nicolas Iooss
+# from: https://github.com/fishilico/selinux-refpolicy-patched/blob/travis-upstream/.travis.yml
+---
+
+language: python
+
+env:
+  - TOX_ENV=py27
+  - TOX_ENV=py33
+  - TOX_ENV=py34
+  - TOX_ENV=py35
+  - TOX_ENV=pep8
+  - TOX_ENV=coverage
+  - TOX_ENV=lint
+
+matrix:
+  allow_failures:
+    - env: TOX_ENV=coverage
+
+before_install:
+  - lsb_release -a
+  - bison -V
+  - flex -V
+  - sudo apt-get update -qq
+
+  # Install SELinux userspace utilities dependencies
+  - sudo apt-get install -qq libaudit-dev libcap-ng-dev libustr-dev libpcre3-dev
+
+  # Install newer swig
+  - curl -sS -L http://prdownloads.sourceforge.net/swig/swig-3.0.8.tar.gz | tar xz
+  - cd swig-3.0.8
+  - ./configure
+  - make
+  - sudo make install
+  - cd ..
+
+  # Download current SELinux userspace tools and libraries
+  - curl -sS -L https://github.com/SELinuxProject/selinux/archive/20160223.tar.gz | tar xz
+  - mv selinux-20160223 selinux-src
+
+  # Ubuntu 12.04 coreutils is too old to provide "ln --relative" :(
+  - sed 's/ln -sf --relative /ln -sf /' -i selinux-src/libsepol/src/Makefile
+  - sed 's/ln -sf --relative /ln -sf /' -i selinux-src/libselinux/src/Makefile
+
+  # Drop secilc to break xmlto dependence (secilc isn't used here anyway)
+  - sed -i -e 's/secilc//' selinux-src/Makefile
+
+  # Drop sepolicy to break setools3 dependence (sepolicy isn't used here anyway)
+  - sed -i -e 's/sepolicy//' selinux-src/policycoreutils/Makefile
+
+  # Compile and install SELinux toolchain
+  # On Ubuntu 12.04, default CFLAGS make the build fail in libsepol/cil with:
+  #    error: declaration of 'index' shadows a global declarationo
+  - sudo make CFLAGS="-O2 -pipe -fPIC -Wall" -C selinux-src install
+
+  # Ubuntu 12.04's flex generates a redundant decl in libqpol
+  - sed -i -e "/Wwrite-strings/s/,/, '-Wno-redundant-decls',/" setup.py
+
+install:
+  - pip install tox
+
+script:
+  - tox --version
+  - tox -e $TOX_ENV

@@ -1,0 +1,77 @@
+REST API
+    sub_create
+        http://127.0.0.1:8000/rwfm/create/s/
+            subID - HOSTID_UID_PID / HOSTID_UNAME_PID
+            admin - HOSTID_UID_PID / HOSTID_UNAME_PID
+            readers - S  [initially set of all subjects]
+            writers - {} [initially]
+        return : SUCCESS/FAIL
+
+    obj_create
+        http://127.0.0.1:8000/rwfm/create/o/
+            objID - HOSTID DEVICEID INUM
+            admin - UID/UNAME
+            readers - calculate based on perms. {list of UIDs/UNAMEs}
+            writers - calculate based on perms. {list of UIDs/UNAMEs}
+        return : SUCCESS/FAIL
+
+    read_allowed
+        http://127.0.0.1:8000/read/sub_id/obj_id/
+        return : ALLOWED/DENIED/ERROR and sub_obj_map
+        sub_obj_map tells whether subject or object exists.
+
+    write_allowed
+        http://127.0.0.1:8000/write/sub_id/obj_id/
+        return : ALLOWED/DENIED/ERROR and sub_obj_map
+        sub_obj_map tells whether subject or object exists.
+
+
+Label -  Admin, {READERS}, {WRITERS}
+start label for subject :  s, {S}, {}
+S - set of all the subjects
+
+myopen(){
+    subID = HOSTID + USER NAME + PID
+    ObjectID = Inode Num + Device ID + Host ID
+    ret = is_allowed(subID, objID, op)
+    if ret!=0
+        ENOACCESS
+    libc_open()
+}
+
+
+Return : Response object (described below.)
+    Response should be folliwing form
+        status :
+            ALLOWED
+            DENIED
+            ERROR
+        data    :
+            bit representing presence of subID, objID in ERROR case
+            Empty otherwise
+
+Method is_allowed(subID, objID, operation)
+    GET request to see if OPERATION allowed
+    Request contains subID/objID
+
+    RESEND = FALSE
+
+    IF (ERROR and sub not present)
+        Form slabel
+        REST API to create entry for subject
+        RESEND = TRUE
+
+    IF (ERROR and obj not present)
+        Form olabel
+        REST API to create entry for object
+        RESEND = TRUE
+
+    IF (RESEND)
+        GET request to see if OPERATION allowed
+
+    IF (ALLOWED)
+        open file in requested mode
+
+    IF (DENIED)
+        ENOACCESS
+
